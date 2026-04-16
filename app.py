@@ -1,9 +1,12 @@
 from flask import Flask, render_template, request, redirect, session
-import sqlite3, os, time
+import sqlite3
+import os
+import time
 
 app = Flask(__name__)
 app.secret_key = "secret123"
 
+# ---------------- FOLDERS ----------------
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -19,6 +22,7 @@ users = {
 def init_db():
     conn = sqlite3.connect("data.db")
     c = conn.cursor()
+
     c.execute("""
     CREATE TABLE IF NOT EXISTS records(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,6 +33,7 @@ def init_db():
         image TEXT
     )
     """)
+
     conn.commit()
     conn.close()
 
@@ -61,17 +66,19 @@ def dashboard():
 
     if village and chowk:
         data = conn.execute(
-        "SELECT * FROM records WHERE village=? AND chowk=? ORDER BY id DESC",
-        (village, chowk)).fetchall()
+            "SELECT * FROM records WHERE village=? AND chowk=? ORDER BY id DESC",
+            (village, chowk)
+        ).fetchall()
     else:
         data = conn.execute(
-        "SELECT * FROM records ORDER BY id DESC").fetchall()
+            "SELECT * FROM records ORDER BY id DESC"
+        ).fetchall()
 
     conn.close()
 
     return render_template("dashboard.html", data=data)
 
-# ---------------- UPLOAD API ----------------
+# ---------------- UPLOAD (FROM PI) ----------------
 @app.route("/upload", methods=["POST"])
 def upload():
 
@@ -81,22 +88,34 @@ def upload():
     chowk = request.form["chowk"]
 
     filename = str(int(time.time())) + ".jpg"
-    path = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(path)
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+
+    file.save(filepath)
 
     conn = sqlite3.connect("data.db")
+
     conn.execute(
-    "INSERT INTO records (time,village,chowk,count,image) VALUES (?,?,?,?,?)",
-    (time.ctime(), village, chowk, count, filename))
+        "INSERT INTO records (time,village,chowk,count,image) VALUES (?,?,?,?,?)",
+        (time.ctime(), village, chowk, count, filename)
+    )
+
     conn.commit()
     conn.close()
 
     return "OK"
 
-# ---------------- IMAGE SHOW ----------------
-@app.route("/uploads/<name>")
-def get_file(name):
-    return open(os.path.join(UPLOAD_FOLDER, name), "rb").read()
+# ---------------- SHOW IMAGE ----------------
+@app.route("/uploads/<filename>")
+def uploaded_file(filename):
+    return open(os.path.join(UPLOAD_FOLDER, filename), "rb").read()
+
+# ---------------- LOGOUT ----------------
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    return redirect("/")
 
 # ---------------- RUN ----------------
-app.run(host="0.0.0.0", port=5000)
+if __name__ == "__main__":
+    import os
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
