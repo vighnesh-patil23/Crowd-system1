@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+
+<style>
+
+body{
+    font-family: Arial;
+    background:#f2f2f2;
+}
+
+.header{
+    background:#2a5298;
+    color:white;
+    padding:15px;
+    text-align:center;
+    font-size:22px;
+}
+
+.select-box{
+    text-align:center;
+    margin:20px;
+}
+
+select,button{
+    padding:10px;
+    margin:5px;
+}
+
+.container{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+.card{
+    background:white;
+    margin:15px;
+    padding:15px;
+    width:250px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
+.card img{
+    width:100%;
+    border-radius:5px;
+}
+
+.count{
+    color:red;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+🚨 Crowd Monitoring Dashboard
+</div>
+
+<div class="select-box">
+<form method="post">
+<select name="village">
+<option>Tirpan</option>
+<option>Kotoli</option>
+<option>Shirgao</option>
+<option>Kerli</option>
+</select>
+
+<select name="chowk">
+<option>Chowk1</option>
+<option>Chowk2</option>
+<option>Chowk3</option>
+</select>
+
+<button>View</button>
+</form>
+</div>
+
+<div class="container">
+
+{% for row in data %}
+<div class="card">
+<p><b>Time:</b> {{row[1]}}</p>
+<p><b>Village:</b> {{row[2]}}</p>
+<p><b>Chowk:</b> {{row[3]}}</p>
+<p class="count">People: {{row[4]}}</p>
+
+<img src="/uploads/{{row[5]}}">
+</div>
+{% endfor %}
+
+</div>
+
+</body>
+</html>
