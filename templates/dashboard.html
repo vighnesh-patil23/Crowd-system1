@@ -2,83 +2,104 @@
 <html>
 <head>
 <title>Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
 body{
     margin:0;
-    font-family: Arial;
-    background:#0f172a;
-    color:white;
+    font-family:Arial;
+    background:#f5f7fb;
 }
 
-/* HEADER */
-.header{
-    padding:15px;
-    text-align:center;
-    background:#020617;
+/* SIDEBAR */
+.sidebar{
+    width:70px;
+    height:100vh;
+    background:#111827;
+    position:fixed;
+    color:white;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding-top:20px;
+}
+
+.sidebar div{
+    margin:20px 0;
+    cursor:pointer;
+}
+
+/* MAIN */
+.main{
+    margin-left:80px;
+    padding:20px;
+}
+
+/* TOP */
+.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.title{
     font-size:22px;
+    font-weight:bold;
+}
+
+/* CARDS */
+.cards{
+    display:flex;
+    gap:15px;
+    margin-top:20px;
+}
+
+.card{
+    flex:1;
+    padding:20px;
+    border-radius:10px;
+    background:white;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+.card h3{
+    margin:0;
 }
 
 /* FILTER */
 .filter{
-    text-align:center;
-    padding:15px;
+    margin-top:20px;
 }
 
 select,button{
     padding:10px;
     margin:5px;
-    border-radius:5px;
-    border:none;
 }
 
-button{
-    background:#06b6d4;
-    color:white;
-    cursor:pointer;
-}
-
-/* TABS */
-.tabs{
-    text-align:center;
-}
-
-.tabs button{
-    background:#1e293b;
-}
-
-/* CARDS */
+/* DATA */
 .container{
     display:flex;
     flex-wrap:wrap;
-    justify-content:center;
+    margin-top:20px;
 }
 
-.card{
-    background:#1e293b;
-    width:280px;
+.box{
+    background:white;
+    width:250px;
     margin:10px;
-    padding:15px;
+    padding:10px;
     border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
 }
 
-.card img{
+.box img{
     width:100%;
-    border-radius:8px;
 }
 
 .count{
     color:red;
     font-weight:bold;
-}
-
-/* DELETE BUTTON */
-.delete{
-    background:red;
-    width:100%;
-    margin-top:10px;
 }
 
 </style>
@@ -87,16 +108,33 @@ button{
 
 <body>
 
-<div class="header">
-🚨 Smart Crowd Monitoring Dashboard
+<!-- SIDEBAR -->
+<div class="sidebar">
+<div onclick="showLive()">📊</div>
+<div onclick="showComplaint()">📩</div>
+<div onclick="logout()">🚪</div>
 </div>
 
-<!-- FILTER -->
-<div class="filter">
+<!-- MAIN -->
+<div class="main">
 
+<div class="top">
+<div class="title">🚨 Crowd Monitoring Dashboard</div>
+</div>
+
+<!-- CARDS -->
+<div class="cards">
+<div class="card"><h3>Total Alerts</h3><p>{{data|length}}</p></div>
+<div class="card"><h3>Villages</h3><p>4</p></div>
+<div class="card"><h3>Status</h3><p style="color:green;">Active</p></div>
+</div>
+
+<!-- LIVE SECTION -->
+<div id="live">
+
+<div class="filter">
 <form method="post">
 <select name="village">
-<option value="">Select Village</option>
 <option>Tirpan</option>
 <option>Kotoli</option>
 <option>Shirgao</option>
@@ -104,82 +142,86 @@ button{
 </select>
 
 <select name="chowk">
-<option value="">Select Chowk</option>
 <option>Chowk1</option>
 <option>Chowk2</option>
 <option>Chowk3</option>
 </select>
 
-<button type="submit">View</button>
+<button>View</button>
 </form>
-
 </div>
 
-<!-- TABS -->
-<div class="tabs">
-<button onclick="showLive()">Live Monitoring</button>
-<button onclick="showComplaint()">Complaints</button>
-</div>
+<!-- GRAPH -->
+<canvas id="chart" height="100"></canvas>
 
-<!-- LIVE DATA -->
-<div id="live" class="container">
-
+<!-- DATA -->
+<div class="container">
 {% for row in data %}
-<div class="card">
-
-<p><b>Time:</b> {{row[1]}}</p>
+<div class="box">
 <p><b>{{row[2]}} - {{row[3]}}</b></p>
-
+<p>Time: {{row[1]}}</p>
 <p class="count">People: {{row[4]}}</p>
-
 <img src="/uploads/{{row[5]}}">
-
-<!-- DELETE -->
-<form method="post" action="/delete">
-<input type="hidden" name="id" value="{{row[0]}}">
-<button class="delete">Delete</button>
-</form>
-
 </div>
 {% endfor %}
+</div>
 
 </div>
 
-<!-- COMPLAINT DATA -->
-<div id="complaint" class="container" style="display:none;">
+<!-- COMPLAINT SECTION -->
+<div id="complaint" style="display:none;">
 
+<div class="container">
 {% for c in complaints %}
-<div class="card">
-
-<p><b>Time:</b> {{c[4]}}</p>
-<p><b>Village:</b> {{c[1]}}</p>
-
+<div class="box">
+<p><b>{{c[1]}}</b></p>
 <p>{{c[2]}}</p>
-
 <img src="/uploads/{{c[3]}}">
 
-<!-- DELETE -->
-<form method="post" action="/delete_complaint">
-<input type="hidden" name="id" value="{{c[0]}}">
-<button class="delete">Delete</button>
+<form>
+<input placeholder="Reply..." style="width:100%;padding:5px;">
+<button>Send</button>
 </form>
 
 </div>
 {% endfor %}
+</div>
+
+</div>
 
 </div>
 
 <script>
 
 function showLive(){
-    document.getElementById("live").style.display="flex";
+    document.getElementById("live").style.display="block";
     document.getElementById("complaint").style.display="none";
 }
 
 function showComplaint(){
     document.getElementById("live").style.display="none";
-    document.getElementById("complaint").style.display="flex";
+    document.getElementById("complaint").style.display="block";
 }
+
+function logout(){
+    window.location.href="/logout";
+}
+
+// GRAPH
+var ctx = document.getElementById('chart');
+
+var chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [{% for g in graph_data %}"{{g[0]}}",{% endfor %}],
+        datasets: [{
+            label: 'Crowd Count',
+            data: [{% for g in graph_data %}{{g[1]}},{% endfor %}],
+            borderColor:"blue",
+            fill:false
+        }]
+    }
+});
 
 </script>
 
