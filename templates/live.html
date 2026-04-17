@@ -36,17 +36,10 @@ body{
     padding:20px;
 }
 
-/* TOP */
-.top{
-    display:flex;
-    justify-content:space-between;
-}
-
 /* CARDS */
 .cards{
     display:flex;
     gap:15px;
-    margin-top:20px;
 }
 
 .card{
@@ -56,15 +49,34 @@ body{
     border-radius:15px;
 }
 
-/* FILTER */
-.filter{
-    margin-top:20px;
+/* FILTER CENTER */
+.filter-box{
+    margin-top:30px;
+    text-align:center;
+}
+
+.select{
+    padding:12px;
+    border-radius:8px;
+    border:none;
+    margin:10px;
+    background:#1e293b;
+    color:white;
+}
+
+button{
+    padding:12px 20px;
+    background:#06b6d4;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
 }
 
 /* DATA */
 .container{
     display:flex;
     flex-wrap:wrap;
+    justify-content:center;
 }
 
 .box{
@@ -83,6 +95,32 @@ body{
     color:#facc15;
     font-weight:bold;
 }
+
+/* FLOAT GRAPH BUTTON */
+#graphBtn{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    padding:15px;
+    border-radius:50%;
+    background:#06b6d4;
+    border:none;
+    cursor:pointer;
+    font-size:18px;
+}
+
+/* GRAPH POPUP */
+#graphPopup{
+    display:none;
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:#111827;
+    padding:20px;
+    border-radius:10px;
+    width:70%;
+}
 </style>
 
 </head>
@@ -93,7 +131,6 @@ body{
 <div class="sidebar">
 <h2>⚡ Smart</h2>
 
-<div onclick="location.href='/dashboard'">🏠 Dashboard</div>
 <div>📊 Live</div>
 <div onclick="location.href='/complaint'">📩 Complaint</div>
 <div onclick="location.href='/logout'">🚪 Logout</div>
@@ -103,9 +140,7 @@ body{
 <!-- MAIN -->
 <div class="main">
 
-<div class="top">
 <h2>📊 Live Monitoring</h2>
-</div>
 
 <!-- CARDS -->
 <div class="cards">
@@ -115,17 +150,19 @@ body{
 </div>
 
 <!-- FILTER -->
-<div class="filter">
+<div class="filter-box">
 <form method="post">
 
-<select name="village">
+<select class="select" name="village">
+<option>Select Village</option>
 <option>Tirpan</option>
 <option>Kotoli</option>
 <option>Shirgao</option>
 <option>Kerli</option>
 </select>
 
-<select name="chowk">
+<select class="select" name="chowk">
+<option>Select Chowk</option>
 <option>Chowk1</option>
 <option>Chowk2</option>
 <option>Chowk3</option>
@@ -135,9 +172,6 @@ body{
 
 </form>
 </div>
-
-<!-- GRAPH -->
-<canvas id="chart"></canvas>
 
 <!-- DATA -->
 <div class="container">
@@ -155,7 +189,30 @@ body{
 
 </div>
 
+<!-- FLOAT BUTTON -->
+<button id="graphBtn">📈</button>
+
+<!-- GRAPH POPUP -->
+<div id="graphPopup">
+<canvas id="chart"></canvas>
+<br>
+<button onclick="closeGraph()">Close</button>
+</div>
+
 <script>
+
+// OPEN GRAPH
+document.getElementById("graphBtn").onclick = function(){
+    document.getElementById("graphPopup").style.display="block";
+}
+
+// CLOSE GRAPH
+function closeGraph(){
+    document.getElementById("graphPopup").style.display="none";
+}
+
+// GRAPH DATA
+{% if graph_data %}
 var ctx = document.getElementById('chart');
 
 new Chart(ctx,{
@@ -169,6 +226,8 @@ new Chart(ctx,{
         }]
     }
 });
+{% endif %}
+
 </script>
 
 </body>
