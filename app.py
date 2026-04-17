@@ -5,13 +5,14 @@ import os
 app = Flask(__name__)
 app.secret_key = "secret123"
 
-# ---------- DATABASE SETUP ----------
-DB_NAME = "users.db"
+DB = "database.db"
 
+# ---------- DATABASE INIT ----------
 def init_db():
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB)
     c = conn.cursor()
 
+    # USERS
     c.execute("""
     CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,39 +21,60 @@ def init_db():
     )
     """)
 
+    # ALERT DATA (Raspberry uploads)
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS records(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        time TEXT,
+        village TEXT,
+        chowk TEXT,
+        count INTEGER,
+        image TEXT
+    )
+    """)
+
+    # COMPLAINTS
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS complaints(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        village TEXT,
+        message TEXT,
+        image TEXT
+    )
+    """)
+
     conn.commit()
     conn.close()
 
 init_db()
 
-# ---------- AUTHORITY USERS ----------
+# ---------- AUTHORITY LOGIN ----------
 AUTH_USERS = {
     "admin": "1234",
     "police": "9999"
 }
 
 # ---------- LOGIN ----------
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET","POST"])
 def login():
-    message = ""
+    msg = ""
 
     if request.method == "POST":
         role = request.form.get("role")
         username = request.form.get("username")
         password = request.form.get("password")
 
-        # AUTHORITY LOGIN
+        # AUTHORITY
         if role == "authority":
             if username in AUTH_USERS and AUTH_USERS[username] == password:
                 session["user"] = username
-                session["role"] = "authority"
                 return redirect("/dashboard")
             else:
-                message = "❌ Invalid Username or Password"
+                msg = "Invalid Username or Password"
 
-        # CITIZEN LOGIN
+        # CITIZEN
         else:
-            conn = sqlite3.connect(DB_NAME)
+            conn = sqlite3.connect(DB)
             c = conn.cursor()
 
             c.execute("SELECT * FROM users WHERE username=? AND password=?",
@@ -63,54 +85,80 @@ def login():
 
             if user:
                 session["user"] = username
-                session["role"] = "citizen"
                 return redirect("/dashboard")
             else:
-                message = "❌ User not found. Please register"
+                msg = "User not found"
 
-    return render_template("login.html", message=message)
+    return render_template("login.html", message=msg)
 
 # ---------- REGISTER ----------
-@app.route("/register", methods=["GET", "POST"])
+@app.route("/register", methods=["GET","POST"])
 def register():
-    message = ""
+    msg = ""
 
-    try:
-        if request.method == "POST":
-            username = request.form.get("username")
-            password = request.form.get("password")
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
 
-            conn = sqlite3.connect(DB_NAME)
+        try:
+            conn = sqlite3.connect(DB)
             c = conn.cursor()
 
-            # check duplicate
-            c.execute("SELECT * FROM users WHERE username=?", (username,))
-            existing = c.fetchone()
+            c.execute("INSERT INTO users(username,password) VALUES(?,?)",
+                      (username, password))
 
-            if existing:
-                message = "⚠ Username already exists"
-            else:
-                c.execute("INSERT INTO users(username,password) VALUES(?,?)",
-                          (username, password))
-                conn.commit()
-                message = "✅ Successfully Registered! Please Login"
-
+            conn.commit()
             conn.close()
 
-    except Exception as e:
-        message = f"❌ Error: {str(e)}"
+            msg = "Successfully Registered"
 
-    return render_template("register.html", message=message)
+        except:
+            msg = "Username already exists"
 
-# ---------- DASHBOARD ----------
+    return render_template("register.html", message=msg)
+
+# ---------- DASHBOARD (2 OPTIONS) ----------
 @app.route("/dashboard")
 def dashboard():
     if "user" not in session:
         return redirect("/")
+    return render_template("dashboard.html")
 
-    return render_template("dashboard.html",
-                           user=session["user"],
-                           role=session["role"])
+# ---------- LIVE MONITORING ----------
+@app.route("/live", methods=["GET","POST"])
+def live():
+
+    village = request.form.get("village")
+    chowk = request.form.get("chowk")
+
+    conn = sqlite3.connect(DB)
+
+    if village and chowk:
+        data = conn.execute(
+            "SELECT * FROM records WHERE village=? AND chowk=? ORDER BY id DESC",
+            (village, chowk)
+        ).fetchall()
+
+        graph_data = conn.execute(
+            "SELECT time, count FROM records WHERE village=? AND chowk=?",
+            (village, chowk)
+        ).fetchall()
+    else:
+        data = conn.execute("SELECT * FROM records ORDER BY id DESC").fetchall()
+        graph_data = []
+
+    conn.close()
+
+    return render_template("live.html", data=data, graph_data=graph_data)
+
+# ---------- COMPLAINT ----------
+@app.route("/complaint")
+def complaint():
+    conn = sqlite3.connect(DB)
+    complaints = conn.execute("SELECT * FROM complaints ORDER BY id DESC").fetchall()
+    conn.close()
+
+    return render_template("complaint.html", complaints=complaints)
 
 # ---------- LOGOUT ----------
 @app.route("/logout")
