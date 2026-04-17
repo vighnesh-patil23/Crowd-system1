@@ -1,87 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Smart Crowd System</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login</title>
 
 <style>
-
 body{
     margin:0;
-    font-family: Arial;
-    background: url("https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1920&auto=format&fit=crop") no-repeat center center/cover;
-    height:100vh;
+    font-family:Arial;
+    background:url("https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1920&auto=format&fit=crop") no-repeat center/cover;
+}
+
+.container{
     display:flex;
     justify-content:center;
     align-items:center;
+    height:100vh;
+    gap:40px;
 }
 
-/* MAIN BOX */
-.container{
-    display:flex;
-    gap:30px;
-}
-
-/* CARD */
 .box{
-    background: rgba(0,255,255,0.08);
-    backdrop-filter: blur(12px);
-    border:1px solid rgba(0,255,255,0.5);
-    border-radius:15px;
+    background:rgba(0,0,0,0.85);
     padding:30px;
-    width:300px;
+    border-radius:12px;
+    width:280px;
     color:#00e6ff;
-    box-shadow:0 0 25px rgba(0,255,255,0.4);
-}
-
-/* INPUT */
-.input-box{
-    position:relative;
+    box-shadow:0 0 25px rgba(0,255,255,0.5);
 }
 
 input{
     width:100%;
     padding:10px;
     margin:10px 0;
-    background:transparent;
+    background:#111;
     border:1px solid #00e6ff;
-    border-radius:5px;
     color:white;
 }
 
-/* BUTTON */
 button{
     width:100%;
     padding:10px;
-    margin-top:10px;
     background:#00e6ff;
     border:none;
-    border-radius:5px;
     font-weight:bold;
-    cursor:pointer;
 }
 
-button:hover{
-    background:#00bcd4;
-}
-
-/* EYE */
-.eye{
-    position:absolute;
-    right:10px;
-    top:50%;
-    transform:translateY(-50%);
-    cursor:pointer;
-}
-
-/* LINK */
-.link{
+.error{
+    color:red;
     text-align:center;
-    margin-top:10px;
-    cursor:pointer;
-    color:#ccc;
 }
-
 </style>
 
 </head>
@@ -90,89 +56,39 @@ button:hover{
 
 <div class="container">
 
-<!-- 🔐 ADMIN LOGIN -->
+<!-- AUTHORITY -->
 <div class="box">
+<h2>🔐 Authority</h2>
 
-<h2>🔐 Administrator</h2>
-
-<form method="post" action="/admin_login">
-
-<input name="username" placeholder="Username" required>
-
-<div class="input-box">
-<input id="admin_pass" name="password" type="password" placeholder="Password" required>
-<span class="eye" onclick="toggleAdmin()">👁️</span>
-</div>
-
+<form method="post">
+<input type="hidden" name="role" value="authority">
+<input name="username" placeholder="Username">
+<input type="password" name="password" placeholder="Password">
 <button>Login</button>
-
 </form>
 
 </div>
 
-<!-- 👤 CITIZEN LOGIN / REGISTER -->
+<!-- CITIZEN -->
 <div class="box">
-
 <h2>👤 Citizen</h2>
 
-<!-- LOGIN FORM -->
-<form method="post" action="/user_login" id="loginForm">
-
-<input name="username" placeholder="Username" required>
-
-<div class="input-box">
-<input id="user_pass" name="password" type="password" placeholder="Password" required>
-<span class="eye" onclick="toggleUser()">👁️</span>
-</div>
-
+<form method="post">
+<input type="hidden" name="role" value="citizen">
+<input name="username" placeholder="Username">
+<input type="password" name="password" placeholder="Password">
 <button>Login</button>
-
 </form>
 
-<!-- REGISTER FORM -->
-<form method="post" action="/register" id="registerForm" style="display:none;">
-
-<input name="username" placeholder="Create Username" required>
-<input name="password" type="password" placeholder="Create Password" required>
-
-<button>Register</button>
-
-</form>
-
-<div class="link" onclick="toggleForm()">
-New user? Register here
-</div>
+<p style="text-align:center;">
+<a href="/register" style="color:#00e6ff;">New user? Register</a>
+</p>
 
 </div>
 
 </div>
 
-<script>
-
-function toggleAdmin(){
-    let x = document.getElementById("admin_pass");
-    x.type = x.type === "password" ? "text" : "password";
-}
-
-function toggleUser(){
-    let x = document.getElementById("user_pass");
-    x.type = x.type === "password" ? "text" : "password";
-}
-
-function toggleForm(){
-    let login = document.getElementById("loginForm");
-    let register = document.getElementById("registerForm");
-
-    if(login.style.display === "none"){
-        login.style.display = "block";
-        register.style.display = "none";
-    } else {
-        login.style.display = "none";
-        register.style.display = "block";
-    }
-}
-
-</script>
+<p class="error">{{message}}</p>
 
 </body>
 </html>
