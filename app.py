@@ -115,7 +115,6 @@ def register():
             conn.commit()
             conn.close()
             msg = "Successfully Registered"
-
         except:
             msg = "Username already exists"
 
@@ -131,6 +130,8 @@ def dashboard():
 # ---------- LIVE ----------
 @app.route("/live", methods=["GET","POST"])
 def live():
+    if "user" not in session:
+        return redirect("/")
 
     village = request.form.get("village")
     chowk = request.form.get("chowk")
@@ -179,6 +180,13 @@ def live_upload():
 
     return "OK"
 
+# ---------- CITIZEN COMPLAINT PAGE ----------
+@app.route("/citizen_complaint")
+def citizen_complaint():
+    if "user" not in session:
+        return redirect("/")
+    return render_template("citizen_complaint.html")
+
 # ---------- SUBMIT COMPLAINT ----------
 @app.route("/submit_complaint", methods=["POST"])
 def submit_complaint():
@@ -202,9 +210,12 @@ def submit_complaint():
 
     return redirect("/dashboard")
 
-# ---------- VIEW COMPLAINT ----------
+# ---------- ADMIN COMPLAINT ----------
 @app.route("/complaint")
 def complaint():
+    if "user" not in session:
+        return redirect("/")
+
     conn = sqlite3.connect(DB)
     complaints = conn.execute(
         "SELECT * FROM complaints ORDER BY id DESC"
@@ -227,6 +238,9 @@ def resolve(id):
 # ---------- CITIZEN VIEW ----------
 @app.route("/my_complaints")
 def my_complaints():
+
+    if "user" not in session:
+        return redirect("/")
 
     name = session.get("user")
 
