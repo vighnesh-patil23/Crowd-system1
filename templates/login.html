@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>Login</title>
+
 <style>
 body{
     background: linear-gradient(to right,#1e3c72,#2a5298);
@@ -9,40 +10,48 @@ body{
     color:white;
     text-align:center;
 }
+
 .box{
-    margin-top:100px;
+    margin-top:120px;
     background:white;
     color:black;
     padding:30px;
-    width:300px;
-    margin-left:auto;
-    margin-right:auto;
+    width:320px;
+    margin:auto;
     border-radius:10px;
+    box-shadow:0 0 15px rgba(0,0,0,0.3);
 }
+
 input{
     width:90%;
     padding:10px;
     margin:10px;
+    border-radius:5px;
 }
+
 button{
     padding:10px;
     width:100%;
     background:#2a5298;
     color:white;
     border:none;
+    border-radius:5px;
 }
+
 </style>
 </head>
 
 <body>
 
+<h1>Smart Crowd Monitoring System</h1>
+
 <div class="box">
 <h2>Admin Login</h2>
 
 <form method="post">
-<input name="username" placeholder="Username">
-<input name="password" type="password" placeholder="Password">
-<button>Login</button>
+<input name="username" placeholder="Username" required>
+<input name="password" type="password" placeholder="Password" required>
+<button type="submit">Login</button>
 </form>
 
 </div>
