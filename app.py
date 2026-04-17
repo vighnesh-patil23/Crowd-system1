@@ -6,7 +6,6 @@ import time
 app = Flask(__name__)
 app.secret_key = "secret123"
 
-# ---------------- FOLDERS ----------------
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -21,9 +20,7 @@ users = {
 # ---------------- DATABASE ----------------
 def init_db():
     conn = sqlite3.connect("data.db")
-    c = conn.cursor()
-
-    c.execute("""
+    conn.execute("""
     CREATE TABLE IF NOT EXISTS records(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         time TEXT,
@@ -33,7 +30,6 @@ def init_db():
         image TEXT
     )
     """)
-
     conn.commit()
     conn.close()
 
@@ -70,15 +66,13 @@ def dashboard():
             (village, chowk)
         ).fetchall()
     else:
-        data = conn.execute(
-            "SELECT * FROM records ORDER BY id DESC"
-        ).fetchall()
+        data = conn.execute("SELECT * FROM records ORDER BY id DESC").fetchall()
 
     conn.close()
 
     return render_template("dashboard.html", data=data)
 
-# ---------------- UPLOAD (FROM PI) ----------------
+# ---------------- UPLOAD ----------------
 @app.route("/upload", methods=["POST"])
 def upload():
 
@@ -104,7 +98,26 @@ def upload():
 
     return "OK"
 
-# ---------------- SHOW IMAGE ----------------
+# ---------------- DELETE ----------------
+@app.route("/delete", methods=["POST"])
+def delete_data():
+
+    village = request.form["village"]
+    chowk = request.form["chowk"]
+
+    conn = sqlite3.connect("data.db")
+
+    conn.execute(
+        "DELETE FROM records WHERE village=? AND chowk=?",
+        (village, chowk)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/dashboard")
+
+# ---------------- IMAGE ----------------
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     return open(os.path.join(UPLOAD_FOLDER, filename), "rb").read()
@@ -117,5 +130,4 @@ def logout():
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
-    import os
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
