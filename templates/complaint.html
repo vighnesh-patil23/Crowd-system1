@@ -1,61 +1,148 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Complaints</title>
+<title>Admin Complaints</title>
 
 <style>
 body{
     margin:0;
     font-family:Arial;
-    background:#020617;
+    background:#0b0f19;
     color:white;
 }
 
-.header{
+/* SIDEBAR */
+.sidebar{
+    width:200px;
+    height:100vh;
+    background:#111827;
+    position:fixed;
     padding:20px;
-    font-size:22px;
 }
 
+.sidebar h2{
+    color:#facc15;
+}
+
+.sidebar div{
+    margin:20px 0;
+    cursor:pointer;
+}
+
+/* MAIN */
+.main{
+    margin-left:220px;
+    padding:20px;
+}
+
+/* TITLE */
+h2{
+    margin-bottom:20px;
+}
+
+/* CARDS */
 .container{
     display:flex;
     flex-wrap:wrap;
-    justify-content:center;
 }
 
 .card{
+    width:300px;
     background:#1e293b;
-    width:250px;
     margin:10px;
     padding:15px;
-    border-radius:10px;
+    border-radius:12px;
+    box-shadow:0 0 10px rgba(0,0,0,0.5);
 }
 
 .card img{
     width:100%;
+    border-radius:8px;
+    margin-top:10px;
 }
+
+.status{
+    margin-top:10px;
+    font-weight:bold;
+}
+
+.pending{
+    color:red;
+}
+
+.resolved{
+    color:#22c55e;
+}
+
+/* BUTTON */
+button{
+    margin-top:10px;
+    padding:10px;
+    width:100%;
+    background:#06b6d4;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover{
+    background:#0891b2;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<div class="header">📩 Complaints</div>
+<!-- SIDEBAR -->
+<div class="sidebar">
+<h2>⚡ Smart</h2>
+
+<div onclick="location.href='/live'">📊 Live</div>
+<div>📩 Complaints</div>
+<div onclick="location.href='/logout'">🚪 Logout</div>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<h2>📩 Complaints Dashboard</h2>
 
 <div class="container">
 
 {% for c in complaints %}
 <div class="card">
-<p><b>{{c[1]}}</b></p>
-<p>{{c[2]}}</p>
-<img src="/uploads/{{c[3]}}">
 
-<form>
-<input placeholder="Reply..." style="width:100%;padding:5px;">
-<button>Send</button>
-</form>
+<p><b>Name:</b> {{c[1]}}</p>
+<p><b>Phone:</b> {{c[2]}}</p>
+<p><b>Village:</b> {{c[3]}}</p>
+
+<p>{{c[4]}}</p>
+
+<img src="/static/uploads/{{c[5]}}">
+
+<p class="status">
+Status:
+{% if c[6] == "Pending" %}
+<span class="pending">Pending</span>
+{% else %}
+<span class="resolved">Resolved ✔</span>
+{% endif %}
+</p>
+
+{% if c[6] == "Pending" %}
+<a href="/resolve/{{c[0]}}">
+<button>Mark as OK</button>
+</a>
+{% endif %}
 
 </div>
 {% endfor %}
+
+</div>
 
 </div>
 
