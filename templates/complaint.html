@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Complaints</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#020617;
+    color:white;
+}
+
+.header{
+    padding:20px;
+    font-size:22px;
+}
+
+.container{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+.card{
+    background:#1e293b;
+    width:250px;
+    margin:10px;
+    padding:15px;
+    border-radius:10px;
+}
+
+.card img{
+    width:100%;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="header">📩 Complaints</div>
+
+<div class="container">
+
+{% for c in complaints %}
+<div class="card">
+<p><b>{{c[1]}}</b></p>
+<p>{{c[2]}}</p>
+<img src="/uploads/{{c[3]}}">
+
+<form>
+<input placeholder="Reply..." style="width:100%;padding:5px;">
+<button>Send</button>
+</form>
+
+</div>
+{% endfor %}
+
+</div>
+
+</body>
+</html>
