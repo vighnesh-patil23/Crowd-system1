@@ -1,110 +1,163 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Dashboard</title>
-
-<meta http-equiv="refresh" content="5">
+<title>Smart Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+
 body{
+    margin:0;
     font-family: Arial;
-    background: linear-gradient(to right,#eef2f3,#8e9eab);
-}
-
-.header{
-    background:#2a5298;
+    background:#111;
     color:white;
-    padding:15px;
-    text-align:center;
-    font-size:26px;
+    display:flex;
 }
 
-.select-box{
+/* 🔥 SIDEBAR */
+.sidebar{
+    width:200px;
+    background:#1c1c1c;
+    height:100vh;
+    padding:20px;
+}
+
+.sidebar h2{
+    color:#ffd700;
+}
+
+.sidebar a{
+    display:block;
+    padding:10px;
+    color:white;
+    text-decoration:none;
+}
+
+.sidebar a:hover{
+    background:#333;
+}
+
+/* 🔥 MAIN */
+.main{
+    flex:1;
+    padding:20px;
+}
+
+/* 🔥 TOP CARDS */
+.top{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.card-top{
+    background:#222;
+    padding:20px;
+    border-radius:10px;
+    flex:1;
+    min-width:150px;
     text-align:center;
-    margin:20px;
+}
+
+.highlight{
+    background:#ffd700;
+    color:black;
+}
+
+/* 🔥 FILTER */
+.filter{
+    margin:20px 0;
 }
 
 select,button{
     padding:10px;
     margin:5px;
     border-radius:5px;
-}
-
-button{
-    background:#2a5298;
-    color:white;
     border:none;
 }
 
-.delete-btn{
-    background:red;
+button{
+    background:#ffd700;
+    cursor:pointer;
 }
 
-.container{
+/* 🔥 DATA CARDS */
+.grid{
     display:flex;
     flex-wrap:wrap;
-    justify-content:center;
+    gap:15px;
 }
 
-.card{
-    background:white;
-    margin:15px;
+.data-card{
+    background:#222;
     padding:15px;
-    width:270px;
     border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,0.2);
-    text-align:center;
+    width:250px;
 }
 
-.card img{
+.data-card img{
     width:100%;
+    border-radius:8px;
 }
 
 .count{
-    color:red;
+    color:#ff4d4d;
     font-weight:bold;
 }
-</style>
 
-<script>
-function updateChowk() {
-    var village = document.getElementById("village").value;
-    var chowk = document.getElementById("chowk");
-
-    chowk.innerHTML = "";
-
-    chowk.innerHTML = "<option>Chowk1</option><option>Chowk2</option><option>Chowk3</option>";
+.delete{
+    background:red;
+    color:white;
+    width:100%;
+    margin-top:10px;
 }
-</script>
+
+</style>
 
 </head>
 
 <body>
 
-<div class="header">
-🚨 Crowd Monitoring Dashboard
+<!-- 🔥 SIDEBAR -->
+<div class="sidebar">
+<h2>🚨 Crowd</h2>
+<a href="#">Dashboard</a>
+<a href="#">Reports</a>
+<a href="#">Settings</a>
+<a href="/logout">Logout</a>
 </div>
 
-<div class="select-box">
+<!-- 🔥 MAIN -->
+<div class="main">
+
+<h1>Smart Crowd Monitoring</h1>
+
+<!-- 🔥 TOP STATS -->
+<div class="top">
+
+<div class="card-top highlight">
+<h2>Total Alerts</h2>
+<p>{{data|length}}</p>
+</div>
+
+<div class="card-top">
+<h2>System Status</h2>
+<p>Active</p>
+</div>
+
+<div class="card-top">
+<h2>Mode</h2>
+<p>Live Monitoring</p>
+</div>
+
+</div>
+
+<!-- 🔥 FILTER -->
+<div class="filter">
 
 <form method="post">
-<select id="village" name="village" onchange="updateChowk()">
-<option value="">Select Village</option>
-<option>Tirpan</option>
-<option>Kotoli</option>
-<option>Shirgao</option>
-<option>Kerli</option>
-</select>
-
-<select id="chowk" name="chowk">
-<option>Select Chowk</option>
-</select>
-
-<button>View</button>
-</form>
-
-<form method="post" action="/delete">
 <select name="village">
+<option value="">Village</option>
 <option>Tirpan</option>
 <option>Kotoli</option>
 <option>Shirgao</option>
@@ -112,27 +165,40 @@ function updateChowk() {
 </select>
 
 <select name="chowk">
+<option value="">Chowk</option>
 <option>Chowk1</option>
 <option>Chowk2</option>
 <option>Chowk3</option>
 </select>
 
-<button class="delete-btn">Delete Data</button>
+<button>View</button>
 </form>
 
 </div>
 
-<div class="container">
+<!-- 🔥 DATA -->
+<div class="grid">
 
 {% for row in data %}
-<div class="card">
+<div class="data-card">
+
 <p><b>Time:</b> {{row[1]}}</p>
-<p><b>Village:</b> {{row[2]}}</p>
-<p><b>Chowk:</b> {{row[3]}}</p>
+<p><b>{{row[2]}} - {{row[3]}}</b></p>
+
 <p class="count">People: {{row[4]}}</p>
+
 <img src="/uploads/{{row[5]}}">
+
+<form method="post" action="/delete">
+<input type="hidden" name="village" value="{{row[2]}}">
+<input type="hidden" name="chowk" value="{{row[3]}}">
+<button class="delete">Delete</button>
+</form>
+
 </div>
 {% endfor %}
+
+</div>
 
 </div>
 
