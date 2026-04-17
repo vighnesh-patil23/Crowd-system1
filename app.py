@@ -11,7 +11,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # 🔐 USERS
 users = {
-    "admin": "123"
+    "Grampanchayat": "Gram@123"
 }
 
 # 📦 DATABASE INIT
