@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Smart Dashboard</title>
+<title>Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -9,64 +9,22 @@
 body{
     margin:0;
     font-family: Arial;
-    background:#111;
+    background:#0f172a;
     color:white;
-    display:flex;
 }
 
-/* 🔥 SIDEBAR */
-.sidebar{
-    width:200px;
-    background:#1c1c1c;
-    height:100vh;
-    padding:20px;
-}
-
-.sidebar h2{
-    color:#ffd700;
-}
-
-.sidebar a{
-    display:block;
-    padding:10px;
-    color:white;
-    text-decoration:none;
-}
-
-.sidebar a:hover{
-    background:#333;
-}
-
-/* 🔥 MAIN */
-.main{
-    flex:1;
-    padding:20px;
-}
-
-/* 🔥 TOP CARDS */
-.top{
-    display:flex;
-    gap:15px;
-    flex-wrap:wrap;
-}
-
-.card-top{
-    background:#222;
-    padding:20px;
-    border-radius:10px;
-    flex:1;
-    min-width:150px;
+/* HEADER */
+.header{
+    padding:15px;
     text-align:center;
+    background:#020617;
+    font-size:22px;
 }
 
-.highlight{
-    background:#ffd700;
-    color:black;
-}
-
-/* 🔥 FILTER */
+/* FILTER */
 .filter{
-    margin:20px 0;
+    text-align:center;
+    padding:15px;
 }
 
 select,button{
@@ -77,37 +35,48 @@ select,button{
 }
 
 button{
-    background:#ffd700;
+    background:#06b6d4;
+    color:white;
     cursor:pointer;
 }
 
-/* 🔥 DATA CARDS */
-.grid{
+/* TABS */
+.tabs{
+    text-align:center;
+}
+
+.tabs button{
+    background:#1e293b;
+}
+
+/* CARDS */
+.container{
     display:flex;
     flex-wrap:wrap;
-    gap:15px;
+    justify-content:center;
 }
 
-.data-card{
-    background:#222;
+.card{
+    background:#1e293b;
+    width:280px;
+    margin:10px;
     padding:15px;
     border-radius:10px;
-    width:250px;
 }
 
-.data-card img{
+.card img{
     width:100%;
     border-radius:8px;
 }
 
 .count{
-    color:#ff4d4d;
+    color:red;
     font-weight:bold;
 }
 
+/* DELETE BUTTON */
 .delete{
     background:red;
-    color:white;
     width:100%;
     margin-top:10px;
 }
@@ -118,46 +87,16 @@ button{
 
 <body>
 
-<!-- 🔥 SIDEBAR -->
-<div class="sidebar">
-<h2>🚨 Crowd</h2>
-<a href="#">Dashboard</a>
-<a href="#">Reports</a>
-<a href="#">Settings</a>
-<a href="/logout">Logout</a>
+<div class="header">
+🚨 Smart Crowd Monitoring Dashboard
 </div>
 
-<!-- 🔥 MAIN -->
-<div class="main">
-
-<h1>Smart Crowd Monitoring</h1>
-
-<!-- 🔥 TOP STATS -->
-<div class="top">
-
-<div class="card-top highlight">
-<h2>Total Alerts</h2>
-<p>{{data|length}}</p>
-</div>
-
-<div class="card-top">
-<h2>System Status</h2>
-<p>Active</p>
-</div>
-
-<div class="card-top">
-<h2>Mode</h2>
-<p>Live Monitoring</p>
-</div>
-
-</div>
-
-<!-- 🔥 FILTER -->
+<!-- FILTER -->
 <div class="filter">
 
 <form method="post">
 <select name="village">
-<option value="">Village</option>
+<option value="">Select Village</option>
 <option>Tirpan</option>
 <option>Kotoli</option>
 <option>Shirgao</option>
@@ -165,22 +104,28 @@ button{
 </select>
 
 <select name="chowk">
-<option value="">Chowk</option>
+<option value="">Select Chowk</option>
 <option>Chowk1</option>
 <option>Chowk2</option>
 <option>Chowk3</option>
 </select>
 
-<button>View</button>
+<button type="submit">View</button>
 </form>
 
 </div>
 
-<!-- 🔥 DATA -->
-<div class="grid">
+<!-- TABS -->
+<div class="tabs">
+<button onclick="showLive()">Live Monitoring</button>
+<button onclick="showComplaint()">Complaints</button>
+</div>
+
+<!-- LIVE DATA -->
+<div id="live" class="container">
 
 {% for row in data %}
-<div class="data-card">
+<div class="card">
 
 <p><b>Time:</b> {{row[1]}}</p>
 <p><b>{{row[2]}} - {{row[3]}}</b></p>
@@ -189,9 +134,9 @@ button{
 
 <img src="/uploads/{{row[5]}}">
 
+<!-- DELETE -->
 <form method="post" action="/delete">
-<input type="hidden" name="village" value="{{row[2]}}">
-<input type="hidden" name="chowk" value="{{row[3]}}">
+<input type="hidden" name="id" value="{{row[0]}}">
 <button class="delete">Delete</button>
 </form>
 
@@ -200,7 +145,43 @@ button{
 
 </div>
 
+<!-- COMPLAINT DATA -->
+<div id="complaint" class="container" style="display:none;">
+
+{% for c in complaints %}
+<div class="card">
+
+<p><b>Time:</b> {{c[4]}}</p>
+<p><b>Village:</b> {{c[1]}}</p>
+
+<p>{{c[2]}}</p>
+
+<img src="/uploads/{{c[3]}}">
+
+<!-- DELETE -->
+<form method="post" action="/delete_complaint">
+<input type="hidden" name="id" value="{{c[0]}}">
+<button class="delete">Delete</button>
+</form>
+
 </div>
+{% endfor %}
+
+</div>
+
+<script>
+
+function showLive(){
+    document.getElementById("live").style.display="flex";
+    document.getElementById("complaint").style.display="none";
+}
+
+function showComplaint(){
+    document.getElementById("live").style.display="none";
+    document.getElementById("complaint").style.display="flex";
+}
+
+</script>
 
 </body>
 </html>
