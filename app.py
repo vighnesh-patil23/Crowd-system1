@@ -9,15 +9,12 @@ app.secret_key = "secret123"
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# ---------------- USERS ----------------
+# 🔐 USERS
 users = {
-    "gram": "123",
-    "patil": "123",
-    "station": "123",
-    "police": "123"
+    "admin": "123"
 }
 
-# ---------------- DATABASE ----------------
+# 📦 DATABASE INIT
 def init_db():
     conn = sqlite3.connect("data.db")
     conn.execute("""
@@ -35,7 +32,7 @@ def init_db():
 
 init_db()
 
-# ---------------- LOGIN ----------------
+# 🔐 LOGIN
 @app.route("/", methods=["GET","POST"])
 def login():
     if request.method == "POST":
@@ -48,7 +45,7 @@ def login():
 
     return render_template("login.html")
 
-# ---------------- DASHBOARD ----------------
+# 📊 DASHBOARD
 @app.route("/dashboard", methods=["GET","POST"])
 def dashboard():
 
@@ -66,13 +63,15 @@ def dashboard():
             (village, chowk)
         ).fetchall()
     else:
-        data = conn.execute("SELECT * FROM records ORDER BY id DESC").fetchall()
+        data = conn.execute(
+            "SELECT * FROM records ORDER BY id DESC"
+        ).fetchall()
 
     conn.close()
 
     return render_template("dashboard.html", data=data)
 
-# ---------------- UPLOAD ----------------
+# 📤 UPLOAD FROM PI
 @app.route("/upload", methods=["POST"])
 def upload():
 
@@ -82,52 +81,48 @@ def upload():
     chowk = request.form["chowk"]
 
     filename = str(int(time.time())) + ".jpg"
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    path = os.path.join(UPLOAD_FOLDER, filename)
 
-    file.save(filepath)
+    file.save(path)
 
     conn = sqlite3.connect("data.db")
-
     conn.execute(
         "INSERT INTO records (time,village,chowk,count,image) VALUES (?,?,?,?,?)",
         (time.ctime(), village, chowk, count, filename)
     )
-
     conn.commit()
     conn.close()
 
     return "OK"
 
-# ---------------- DELETE ----------------
+# 🗑 DELETE
 @app.route("/delete", methods=["POST"])
-def delete_data():
+def delete():
 
     village = request.form["village"]
     chowk = request.form["chowk"]
 
     conn = sqlite3.connect("data.db")
-
     conn.execute(
         "DELETE FROM records WHERE village=? AND chowk=?",
         (village, chowk)
     )
-
     conn.commit()
     conn.close()
 
     return redirect("/dashboard")
 
-# ---------------- IMAGE ----------------
+# 🖼 IMAGE
 @app.route("/uploads/<filename>")
-def uploaded_file(filename):
+def show_image(filename):
     return open(os.path.join(UPLOAD_FOLDER, filename), "rb").read()
 
-# ---------------- LOGOUT ----------------
+# 🔓 LOGOUT
 @app.route("/logout")
 def logout():
     session.pop("user", None)
     return redirect("/")
 
-# ---------------- RUN ----------------
+# 🚀 RUN
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
