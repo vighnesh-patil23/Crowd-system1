@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Submit Complaint</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#0b0f19;
+    color:white;
+    display:flex;
+}
+
+/* SIDEBAR */
+.sidebar{
+    width:200px;
+    height:100vh;
+    background:#111827;
+    padding:20px;
+}
+
+.sidebar h2{
+    color:#facc15;
+}
+
+.sidebar div{
+    margin:20px 0;
+    cursor:pointer;
+}
+
+/* MAIN */
+.main{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+/* FORM BOX */
+.box{
+    background:#1e293b;
+    padding:30px;
+    border-radius:15px;
+    width:350px;
+    box-shadow:0 0 20px rgba(0,0,0,0.5);
+}
+
+h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+/* INPUTS */
+input, select, textarea{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    border:none;
+    border-radius:8px;
+    background:#0f172a;
+    color:white;
+}
+
+textarea{
+    height:80px;
+}
+
+/* BUTTON */
+button{
+    width:100%;
+    padding:12px;
+    background:#06b6d4;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#0891b2;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+<h2>👤 Citizen</h2>
+
+<div onclick="location.href='/dashboard'">🏠 Dashboard</div>
+<div>📩 Complaint</div>
+<div onclick="location.href='/my_complaints'">📄 My Complaints</div>
+<div onclick="location.href='/logout'">🚪 Logout</div>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<div class="box">
+
+<h2>📩 Submit Complaint</h2>
+
+<form method="post" action="/submit_complaint" enctype="multipart/form-data">
+
+<input name="name" placeholder="Enter Name" required>
+
+<input name="phone" placeholder="Enter Phone Number" required>
+
+<select name="village" required>
+<option value="">Select Village</option>
+<option>Tirpan</option>
+<option>Kotoli</option>
+<option>Shirgao</option>
+<option>Kerli</option>
+</select>
+
+<textarea name="message" placeholder="Write your complaint" required></textarea>
+
+<input type="file" name="image" required>
+
+<button type="submit">Submit Complaint</button>
+
+</form>
+
+</div>
+
+</div>
+
+</body>
+</html>
