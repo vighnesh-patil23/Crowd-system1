@@ -8,16 +8,16 @@ app.secret_key = "secret123"
 
 DB = "database.db"
 
-# ---------- CREATE FOLDERS ----------
+# ---------- FOLDER ----------
 if not os.path.exists("static/uploads"):
     os.makedirs("static/uploads")
 
-# ---------- DATABASE INIT ----------
+# ---------- DATABASE ----------
 def init_db():
     conn = sqlite3.connect(DB)
     c = conn.cursor()
 
-    # USERS (Citizen)
+    # USERS
     c.execute("""
     CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,7 +26,7 @@ def init_db():
     )
     """)
 
-    # RECORDS (Raspberry alerts)
+    # LIVE RECORDS
     c.execute("""
     CREATE TABLE IF NOT EXISTS records(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,9 +42,12 @@ def init_db():
     c.execute("""
     CREATE TABLE IF NOT EXISTS complaints(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        phone TEXT,
         village TEXT,
         message TEXT,
-        image TEXT
+        image TEXT,
+        status TEXT
     )
     """)
 
@@ -53,14 +56,14 @@ def init_db():
 
 init_db()
 
-# ---------- AUTHORITY USERS ----------
+# ---------- ADMIN LOGIN ----------
 AUTH_USERS = {
     "admin": "1234",
     "police": "9999"
 }
 
 # ---------- LOGIN ----------
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET","POST"])
 def login():
     msg = ""
 
@@ -69,15 +72,16 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        # AUTHORITY LOGIN
+        # ADMIN
         if role == "authority":
             if username in AUTH_USERS and AUTH_USERS[username] == password:
                 session["user"] = username
+                session["role"] = "admin"
                 return redirect("/dashboard")
             else:
                 msg = "Invalid Username or Password"
 
-        # CITIZEN LOGIN
+        # CITIZEN
         else:
             conn = sqlite3.connect(DB)
             c = conn.cursor()
@@ -88,6 +92,7 @@ def login():
 
             if user:
                 session["user"] = username
+                session["role"] = "citizen"
                 return redirect("/dashboard")
             else:
                 msg = "User not found"
@@ -95,7 +100,7 @@ def login():
     return render_template("login.html", message=msg)
 
 # ---------- REGISTER ----------
-@app.route("/register", methods=["GET", "POST"])
+@app.route("/register", methods=["GET","POST"])
 def register():
     msg = ""
 
@@ -105,9 +110,8 @@ def register():
 
         try:
             conn = sqlite3.connect(DB)
-            c = conn.cursor()
-            c.execute("INSERT INTO users(username,password) VALUES(?,?)",
-                      (username, password))
+            conn.execute("INSERT INTO users(username,password) VALUES(?,?)",
+                         (username, password))
             conn.commit()
             conn.close()
             msg = "Successfully Registered"
@@ -124,11 +128,9 @@ def dashboard():
         return redirect("/")
     return render_template("dashboard.html")
 
-# ---------- LIVE MONITORING ----------
-@app.route("/live", methods=["GET", "POST"])
+# ---------- LIVE ----------
+@app.route("/live", methods=["GET","POST"])
 def live():
-    if "user" not in session:
-        return redirect("/")
 
     village = request.form.get("village")
     chowk = request.form.get("chowk")
@@ -153,41 +155,6 @@ def live():
 
     return render_template("live.html", data=data, graph_data=graph_data)
 
-# ---------- COMPLAINT VIEW ----------
-@app.route("/complaint")
-def complaint():
-    if "user" not in session:
-        return redirect("/")
-
-    conn = sqlite3.connect(DB)
-    complaints = conn.execute(
-        "SELECT * FROM complaints ORDER BY id DESC"
-    ).fetchall()
-    conn.close()
-
-    return render_template("complaint.html", complaints=complaints)
-
-# ---------- CITIZEN COMPLAINT SUBMIT ----------
-@app.route("/submit_complaint", methods=["POST"])
-def submit_complaint():
-
-    village = request.form.get("village")
-    message = request.form.get("message")
-    image = request.files["image"]
-
-    filename = image.filename
-    image.save("static/uploads/" + filename)
-
-    conn = sqlite3.connect(DB)
-    conn.execute(
-        "INSERT INTO complaints(village,message,image) VALUES(?,?,?)",
-        (village, message, filename)
-    )
-    conn.commit()
-    conn.close()
-
-    return redirect("/dashboard")
-
 # ---------- RASPBERRY UPLOAD ----------
 @app.route("/live_upload", methods=["POST"])
 def live_upload():
@@ -211,6 +178,66 @@ def live_upload():
     conn.close()
 
     return "OK"
+
+# ---------- SUBMIT COMPLAINT ----------
+@app.route("/submit_complaint", methods=["POST"])
+def submit_complaint():
+
+    name = request.form.get("name")
+    phone = request.form.get("phone")
+    village = request.form.get("village")
+    message = request.form.get("message")
+    image = request.files["image"]
+
+    filename = datetime.now().strftime("%Y%m%d%H%M%S") + ".jpg"
+    image.save("static/uploads/" + filename)
+
+    conn = sqlite3.connect(DB)
+    conn.execute(
+        "INSERT INTO complaints(name,phone,village,message,image,status) VALUES(?,?,?,?,?,?)",
+        (name, phone, village, message, filename, "Pending")
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect("/dashboard")
+
+# ---------- VIEW COMPLAINT ----------
+@app.route("/complaint")
+def complaint():
+    conn = sqlite3.connect(DB)
+    complaints = conn.execute(
+        "SELECT * FROM complaints ORDER BY id DESC"
+    ).fetchall()
+    conn.close()
+
+    return render_template("complaint.html", complaints=complaints)
+
+# ---------- ADMIN RESOLVE ----------
+@app.route("/resolve/<int:id>")
+def resolve(id):
+
+    conn = sqlite3.connect(DB)
+    conn.execute("UPDATE complaints SET status='Resolved' WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+
+    return redirect("/complaint")
+
+# ---------- CITIZEN VIEW ----------
+@app.route("/my_complaints")
+def my_complaints():
+
+    name = session.get("user")
+
+    conn = sqlite3.connect(DB)
+    data = conn.execute(
+        "SELECT * FROM complaints WHERE name=? ORDER BY id DESC",
+        (name,)
+    ).fetchall()
+    conn.close()
+
+    return render_template("my_complaints.html", data=data)
 
 # ---------- LOGOUT ----------
 @app.route("/logout")
