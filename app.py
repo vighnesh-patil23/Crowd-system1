@@ -26,7 +26,7 @@ def init_db():
     )
     """)
 
-    # LIVE RECORDS
+    # LIVE DATA
     c.execute("""
     CREATE TABLE IF NOT EXISTS records(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,7 +56,7 @@ def init_db():
 
 init_db()
 
-# ---------- ADMIN LOGIN ----------
+# ---------- ADMIN ----------
 AUTH_USERS = {
     "admin": "1234",
     "police": "9999"
@@ -72,7 +72,6 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        # ADMIN
         if role == "authority":
             if username in AUTH_USERS and AUTH_USERS[username] == password:
                 session["user"] = username
@@ -81,7 +80,6 @@ def login():
             else:
                 msg = "Invalid Username or Password"
 
-        # CITIZEN
         else:
             conn = sqlite3.connect(DB)
             c = conn.cursor()
@@ -114,9 +112,9 @@ def register():
                          (username, password))
             conn.commit()
             conn.close()
-            msg = "Successfully Registered"
+            msg = "Registered Successfully"
         except:
-            msg = "Username already exists"
+            msg = "Username exists"
 
     return render_template("register.html", message=msg)
 
@@ -127,11 +125,11 @@ def dashboard():
         return redirect("/")
     return render_template("dashboard.html")
 
-# ---------- LIVE ----------
+# ---------- LIVE (ADMIN ONLY) ----------
 @app.route("/live", methods=["GET","POST"])
 def live():
-    if "user" not in session:
-        return redirect("/")
+    if session.get("role") != "admin":
+        return redirect("/dashboard")
 
     village = request.form.get("village")
     chowk = request.form.get("chowk")
@@ -159,12 +157,10 @@ def live():
 # ---------- RASPBERRY UPLOAD ----------
 @app.route("/live_upload", methods=["POST"])
 def live_upload():
-
     village = request.form.get("village")
     chowk = request.form.get("chowk")
     count = request.form.get("count")
     time_data = request.form.get("time")
-
     image = request.files["image"]
 
     filename = datetime.now().strftime("%Y%m%d%H%M%S") + ".jpg"
@@ -183,8 +179,8 @@ def live_upload():
 # ---------- CITIZEN COMPLAINT PAGE ----------
 @app.route("/citizen_complaint")
 def citizen_complaint():
-    if "user" not in session:
-        return redirect("/")
+    if session.get("role") != "citizen":
+        return redirect("/dashboard")
     return render_template("citizen_complaint.html")
 
 # ---------- SUBMIT COMPLAINT ----------
@@ -210,11 +206,11 @@ def submit_complaint():
 
     return redirect("/dashboard")
 
-# ---------- ADMIN COMPLAINT ----------
+# ---------- ADMIN VIEW COMPLAINT ----------
 @app.route("/complaint")
 def complaint():
-    if "user" not in session:
-        return redirect("/")
+    if session.get("role") != "admin":
+        return redirect("/dashboard")
 
     conn = sqlite3.connect(DB)
     complaints = conn.execute(
@@ -227,6 +223,8 @@ def complaint():
 # ---------- ADMIN RESOLVE ----------
 @app.route("/resolve/<int:id>")
 def resolve(id):
+    if session.get("role") != "admin":
+        return redirect("/dashboard")
 
     conn = sqlite3.connect(DB)
     conn.execute("UPDATE complaints SET status='Resolved' WHERE id=?", (id,))
@@ -238,9 +236,8 @@ def resolve(id):
 # ---------- CITIZEN VIEW ----------
 @app.route("/my_complaints")
 def my_complaints():
-
-    if "user" not in session:
-        return redirect("/")
+    if session.get("role") != "citizen":
+        return redirect("/dashboard")
 
     name = session.get("user")
 
